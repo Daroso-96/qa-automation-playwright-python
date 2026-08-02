@@ -1,4 +1,4 @@
-# Prueba de automatización SETI
+# Prueba de automatización 
 
 Esta automatización es del primer ejecicio
 
