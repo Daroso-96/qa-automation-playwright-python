@@ -12,12 +12,16 @@ TOTAL_CICLOS = 10
 
 
 def test_formulario_exitoso(page):
+   
+
     validar_configuracion()
 
     login_page = LoginPage(page)
     form_page = FormPage(page)
 
+    
     login_page.abrir(EVALART_URL)
+
     login_page.iniciar_sesion(
         username=EVALART_USER,
         password=EVALART_PASSWORD,
@@ -25,12 +29,13 @@ def test_formulario_exitoso(page):
 
     form_page.esperar_formulario()
 
+    
     for ciclo_esperado in range(1, TOTAL_CICLOS + 1):
         ciclo_actual = form_page.obtener_numero_ciclo()
 
         assert ciclo_actual == ciclo_esperado, (
-            f"Se esperaba iniciar el ciclo {ciclo_esperado}, "
-            f"pero la página muestra el ciclo {ciclo_actual}."
+            f"Se esperaba el ciclo {ciclo_esperado}, "
+            f"pero aparece el ciclo {ciclo_actual}."
         )
 
         print(
@@ -52,3 +57,31 @@ def test_formulario_exitoso(page):
     )
 
 
+def test_formulario_fallido(page):
+    validar_configuracion()
+
+    login_page = LoginPage(page)
+    form_page = FormPage(page)
+
+    login_page.abrir(EVALART_URL)
+
+    login_page.iniciar_sesion(
+        username=EVALART_USER,
+        password=EVALART_PASSWORD,
+    )
+
+    form_page.esperar_formulario()
+
+    
+    form_page.resolver_fecha()
+    form_page.resolver_texto()
+    form_page.resolver_multiplos()
+
+    
+    form_page.responder_operacion_incorrectamente()
+
+    
+    form_page.enviar()
+
+    
+    form_page.validar_comportamiento_negativo()

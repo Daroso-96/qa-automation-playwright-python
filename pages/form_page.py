@@ -7,7 +7,7 @@ from playwright.sync_api import Page
 
 
 class FormPage:
-   
+  
     OPERADORES = {
         ast.Add: operator.add,
         ast.Sub: operator.sub,
@@ -22,13 +22,14 @@ class FormPage:
     def __init__(self, page: Page):
         self.page = page
 
-        # Controles principales
+        
         self.radios = page.locator('input[name="radio"]')
         self.fecha_input = page.locator('input[name="date"]')
         self.textarea = page.locator('textarea[name="text"]')
         self.checkboxes = page.locator('input[name="checkbox"]')
         self.boton_enviar = page.locator('button[type="submit"]')
 
+        
         self.mensaje_error = page.get_by_text(
             "Ha cometido un error, intente de nuevo",
             exact=True,
@@ -45,7 +46,7 @@ class FormPage:
             .nth(1)
         )
 
-        
+       
         self.enunciado_fecha = (
             self.fecha_input
             .locator(
@@ -65,7 +66,7 @@ class FormPage:
             .first
         )
 
-       
+        
         self.enunciado_multiplos = (
             self.checkboxes
             .first
@@ -76,9 +77,7 @@ class FormPage:
             .first
         )
 
-  
-    # OPERACIÓN MATEMÁTICA
-    
+
 
     def _evaluar_expresion(self, expresion: str) -> int | float:
        
@@ -124,7 +123,7 @@ class FormPage:
                 )
 
             raise ValueError(
-                f"Elemento no permitido en la expresión: {type(nodo)}"
+                f"Elemento no permitido: {type(nodo)}"
             )
 
         arbol = ast.parse(expresion, mode="eval")
@@ -135,16 +134,14 @@ class FormPage:
 
         texto = self.enunciado_operacion.inner_text().strip()
 
-       
         expresion = texto.replace("=?", "").strip()
-
         resultado = self._evaluar_expresion(expresion)
 
         if isinstance(resultado, float) and resultado.is_integer():
             resultado = int(resultado)
 
         print(f"Operación: {expresion}")
-        print(f"Resultado: {resultado}")
+        print(f"Resultado correcto: {resultado}")
 
         return resultado
 
@@ -157,14 +154,14 @@ class FormPage:
 
         if radio_correcto.count() != 1:
             raise AssertionError(
-                "No se encontró exactamente un radio "
+                "No se encontró exactamente una opción "
                 f"con el resultado {resultado}."
             )
 
         radio_correcto.check()
 
         assert radio_correcto.is_checked(), (
-            f"No se logró marcar el resultado matemático {resultado}."
+            f"No se logró marcar la respuesta {resultado}."
         )
 
     def responder_operacion_incorrectamente(self) -> None:
@@ -183,11 +180,13 @@ class FormPage:
                 radio.check()
 
                 assert radio.is_checked(), (
-                    "No se logró marcar una respuesta incorrecta."
+                    "No se pudo seleccionar la respuesta incorrecta."
                 )
 
                 print(
-                    f"Respuesta correcta: {resultado_correcto} | "
+                    f"Respuesta correcta: {resultado_correcto}"
+                )
+                print(
                     f"Respuesta incorrecta seleccionada: {valor}"
                 )
 
@@ -197,9 +196,7 @@ class FormPage:
             "No se encontró una opción incorrecta disponible."
         )
 
-    
-    # FECHA
-    
+
 
     def resolver_fecha(self) -> None:
         texto = self.enunciado_fecha.inner_text().strip()
@@ -228,9 +225,7 @@ class FormPage:
             "%d/%m/%Y",
         )
 
-        texto_minusculas = texto.lower()
-
-        if "antes" in texto_minusculas:
+        if "antes" in texto.lower():
             fecha_resultado = fecha_base - timedelta(
                 days=cantidad_dias
             )
@@ -239,7 +234,6 @@ class FormPage:
                 days=cantidad_dias
             )
 
-        
         fecha_para_input = fecha_resultado.strftime("%Y-%m-%d")
 
         print(f"Pregunta fecha: {texto}")
@@ -255,9 +249,7 @@ class FormPage:
             f"Actual: {valor_actual}."
         )
 
-    
-    # REPETICIÓN DE CARACTERES
-    
+ 
 
     def resolver_texto(self) -> None:
         texto = self.enunciado_texto.inner_text().strip()
@@ -288,14 +280,12 @@ class FormPage:
         valor_actual = self.textarea.input_value()
 
         assert valor_actual == resultado, (
-            "El texto escrito no coincide con el esperado. "
-            f"Se esperaban {len(resultado)} caracteres, "
-            f"pero se escribieron {len(valor_actual)}."
+            "El texto generado no coincide con el esperado. "
+            f"Esperados: {len(resultado)} caracteres. "
+            f"Actuales: {len(valor_actual)} caracteres."
         )
 
-    
-    # MÚLTIPLOS
-    
+   
 
     def resolver_multiplos(self) -> None:
         texto = self.enunciado_multiplos.inner_text().strip()
@@ -333,6 +323,7 @@ class FormPage:
                 assert checkbox.is_checked(), (
                     f"No se logró marcar el múltiplo {numero}."
                 )
+
             else:
                 assert not checkbox.is_checked(), (
                     f"El número {numero} quedó marcado, "
@@ -342,8 +333,6 @@ class FormPage:
         print(f"Divisor: {divisor}")
         print(f"Seleccionados: {seleccionados}")
 
-    
-    # FLUJO GENERAL DEL CICLO
     
 
     def resolver_ciclo(self) -> None:
@@ -355,7 +344,7 @@ class FormPage:
         self.resolver_multiplos()
 
     def enviar(self) -> None:
-        
+       
 
         self.boton_enviar.click()
         self.page.wait_for_load_state("domcontentloaded")
@@ -368,13 +357,9 @@ class FormPage:
             timeout=10000,
         )
 
-    
-    
-    
+   
 
     def obtener_numero_ciclo(self) -> int:
-        
-
         texto = self.page.get_by_text(
             re.compile(r"Se encuentra en el ciclo"),
             exact=False,
@@ -388,7 +373,7 @@ class FormPage:
 
         if not coincidencia:
             raise ValueError(
-                f"No se pudo obtener el número del ciclo desde: {texto}"
+                f"No se pudo obtener el ciclo desde: {texto}"
             )
 
         return int(coincidencia.group(1))
@@ -407,8 +392,7 @@ class FormPage:
                 "La plataforma rechazó las respuestas y mostró: "
                 "'Ha cometido un error, intente de nuevo'. "
                 f"El error ocurrió al enviar el ciclo {ciclo_anterior}. "
-                "Después del error, la aplicación quedó o reinició "
-                f"en el ciclo {ciclo_actual} de {total_ciclos}."
+                f"La aplicación quedó en el ciclo {ciclo_actual}."
             )
 
         if ciclo_anterior < total_ciclos:
@@ -418,7 +402,73 @@ class FormPage:
             assert ciclo_actual == ciclo_esperado, (
                 "El formulario no avanzó correctamente. "
                 f"Se esperaba el ciclo {ciclo_esperado}, "
-                f"pero la página muestra el ciclo {ciclo_actual}."
+                f"pero aparece el ciclo {ciclo_actual}."
             )
 
-   
+
+    def validar_error_visible(self) -> None:
+        
+
+        self.mensaje_error.wait_for(
+            state="visible",
+            timeout=10000,
+        )
+
+        mensaje_actual = self.mensaje_error.inner_text().strip()
+        mensaje_esperado = "Ha cometido un error, intente de nuevo"
+
+        assert mensaje_actual == mensaje_esperado, (
+            "El mensaje de error no coincide. "
+            f"Esperado: '{mensaje_esperado}'. "
+            f"Actual: '{mensaje_actual}'."
+        )
+
+    def validar_reinicio_en_ciclo_uno(self) -> None:
+       
+
+        ciclo_actual = self.obtener_numero_ciclo()
+
+        assert ciclo_actual == 1, (
+            "Después del error se esperaba el ciclo 1, "
+            f"pero aparece el ciclo {ciclo_actual}."
+        )
+
+    def validar_formulario_limpio(self) -> None:
+      
+
+        radios_marcados = self.page.locator(
+            'input[name="radio"]:checked'
+        )
+
+        checkboxes_marcados = self.page.locator(
+            'input[name="checkbox"]:checked'
+        )
+
+        assert radios_marcados.count() == 0, (
+            "Después del error quedó un radio seleccionado."
+        )
+
+        valor_fecha = self.fecha_input.input_value()
+
+        assert valor_fecha == "", (
+            "Después del error el campo de fecha no quedó vacío. "
+            f"Valor encontrado: '{valor_fecha}'."
+        )
+
+        valor_texto = self.textarea.input_value()
+
+        assert valor_texto == "", (
+            "Después del error el textarea no quedó vacío. "
+            f"Longitud encontrada: {len(valor_texto)}."
+        )
+
+        assert checkboxes_marcados.count() == 0, (
+            "Después del error quedaron checkboxes seleccionados."
+        )
+
+    def validar_comportamiento_negativo(self) -> None:
+       
+
+        self.validar_error_visible()
+        self.validar_reinicio_en_ciclo_uno()
+        self.validar_formulario_limpio()
